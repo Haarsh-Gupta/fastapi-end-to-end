@@ -1,19 +1,28 @@
-from fastapi import FastAPI, HTTPException , Security , status, Response
-from .models.post_model import Post
+from fastapi import FastAPI, HTTPException , Depends , status, Response
+from .schema.post_model import Post
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from .models import model
+from .db.database import engine, SessionLocal
+from sqlalchemy.orm import Session
+
+model.Base.metadata.create_all(bind= engine)
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
 
 app = FastAPI() 
 
 
-try:
-    conn = psycopg2.connect(host= "localhost", database= "FastApi" ,user="postgres", password="system@2002",
-                            cursor_factory=RealDictCursor)
-    cursor = conn.cursor()
-    print("Connected to the Database")
-except Exception as error :
-    print("Database Connection Failed")
-    print("Error => " , error)
+@app.get("/sqlalchemy")
+def get_all(db : Session = Depends(get_db)):
+    return {"status" : "success"}
+
 
 
 @app.get("/")
