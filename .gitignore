@@ -1,0 +1,53 @@
+# Byte-code files
+__pycache__/
+*.pyc
+*.pyd
+*.pyo
+
+# Distribution / packaging
+.Python
+build/
+dist/
+eggs/
+*.egg-info/
+*.eggs
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.whl
+
+# Virtual environment
+.venv/
+venv/
+env/
+.env/
+*.isolate
+*.dvc/
+.stack-work/
+
+# Editors
+.idea/  # For PyCharm/IntelliJ
+.vscode/ # For VS Code
+*.swp
+*~
+.DS_Store # macOS system files
+Thumbs.db # Windows system files
+
+# Miscellaneous
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+*.seed
+*.bin
+.mypy_cache/
+
+# Specific to lock files (recommendation is to include them in version control)
+# Pipfile.lock
+# poetry.lock
+# pdm.lock
+# uv.lock
