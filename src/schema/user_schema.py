@@ -81,3 +81,12 @@ class UserUpdate(BaseModel):
             return v
         validate_password(v)
         return v
+
+class UserPayload(BaseModel):
+    id : int
+    username : str
+    email: EmailStr
+    admin: bool
+
+    class Config:
+        from_attributes = True

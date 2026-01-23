@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from ..models import post_model
 from ..schema.post_schema import Post
 from psycopg2.extras import RealDictCursor
+from ..utils.auth import get_current_user
 
 router = APIRouter(prefix="/post")
 
@@ -17,7 +18,7 @@ def get_all(db : Session = Depends(get_db)):
     return {"data" : posts} 
 
 @router.post("/")
-def create_post(post : Post , db : Session = Depends(get_db)):
+def create_post(post : Post , db : Session = Depends(get_db) , current_user : dict = Depends(get_current_user)):
     # # pron of sql injection
     # cursor.execute(f"insert into posts (title , content , published) values({post.title} , {post.content} , {post.published})")
 

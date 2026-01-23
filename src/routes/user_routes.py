@@ -1,11 +1,12 @@
 from fastapi import APIRouter , Depends , status , HTTPException , Response
 from sqlalchemy.orm import Session
 from ..db.database import get_db , engine
-from ..schema.user_schema import UserLogin , UserOut , UserRegister, UserUpdate
+from ..schema.user_schema import UserLogin , UserOut , UserRegister, UserUpdate 
 from ..models.user_model import User
 from ..models import user_model
 from ..utils.hash import get_hashed_password , verify_password
 from typing import List 
+from ..utils.auth import create_access_token
 
 router = APIRouter(prefix="/users")
 
@@ -79,30 +80,5 @@ def update_user(id: int, user_data: UserUpdate, db: Session = Depends(get_db)):
 
     db.commit()
     db.refresh(user)
-
-    return user
-
-@router.post("/login", response_model=UserOut)
-def login_user(user_data: UserLogin, db: Session = Depends(get_db)):
-
-    user = None
-
-    if user_data.username:
-        user = db.query(User).filter(User.username == user_data.username).first()
-
-    elif user_data.email:
-        user = db.query(User).filter(User.email == user_data.email).first()
-
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User doesn't exist"
-        )
-
-    if not verify_password(user_data.password, user.password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials"
-        )
 
     return user
