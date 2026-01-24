@@ -1,21 +1,18 @@
 from jose import jwt, JWTError
-from pydantic import BaseModel
 from datetime import datetime, timedelta
 from ..schema.user_schema import UserPayload
 from ..models.user_model import User
 from fastapi import Depends, status, HTTPException
 from fastapi.security import OAuth2PasswordBearer
-
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
+from ..config.config import settings
+from ..db.database import get_db
+from sqlalchemy.orm import Session
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/login")
 
-SECRET_KEY = os.getenv("SECRET_KEY", "your_super_secret_key_here") 
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+SECRET_KEY = settings.secret_key 
+ALGORITHM = settings.algorithm
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
 
 
 def create_access_token(data: dict):
@@ -43,7 +40,7 @@ def verify_access_token(token: str, credentials_exception):
     
     return token_data
 
-def get_current_user(token: str = Depends(oauth2_scheme)):
+def get_current_user(token: str = Depends(oauth2_scheme) , db : Session = Depends(get_db)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -51,4 +48,11 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
     )
     
     data = verify_access_token(token, credentials_exception)
-    return data
+    id = data.id
+
+    user = db.query(User).filter(User.id == id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid Credentials, Or user not exists")
+    
+    return user
