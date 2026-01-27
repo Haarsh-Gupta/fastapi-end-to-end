@@ -24,6 +24,8 @@ class PostUpdate(BaseModel):
 class Post(PostBase):
     id: int
     created_at: datetime
+    upVote : int 
+    downVote : int 
     owner_id: int
     # to ref the user 
     owner : UserOut

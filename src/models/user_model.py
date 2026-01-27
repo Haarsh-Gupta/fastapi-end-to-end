@@ -9,6 +9,6 @@ class User(Base):
     username = Column(String, nullable=False, unique=True, index=True)
     email = Column(String, nullable=False, unique=True, index=True)
     password = Column(String, nullable=False)
-    phone = Column(String, nullable=True)
     admin = Column(Boolean, nullable=False, default=False)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("now()"))
+    phone = Column(String, nullable=True)

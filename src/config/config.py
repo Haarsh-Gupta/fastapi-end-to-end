@@ -4,6 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     database_name: str
     database_password: str
+    alembic_database_password : str
     database_host: str = "localhost"
     database_username: str = "postgres"
     database_port: str
@@ -22,6 +23,16 @@ class Settings(BaseSettings):
             f"{self.database_name}"
         )
 
+    @computed_field
+    @property
+    def alembic_database_url(self) -> str:
+        return (
+            f"postgresql://{self.database_username}:"
+            f"{self.alembic_database_password}@"
+            f"{self.database_host}:"
+            f"{self.database_port}/"
+            f"{self.database_name}"
+        )
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8"

@@ -1,46 +1,88 @@
 from fastapi import APIRouter, Depends , status, HTTPException
 from ..db.database import get_db
+import math
 from sqlalchemy.orm import Session 
 from ..models import post_model
+from ..models.vote_model import Vote
 from ..schema.post_schema import Post , PostBase , PostUpdate
 from ..utils.auth import get_current_user
 from ..models.user_model import User
 from ..models import post_model
 from typing import List , Optional
-from sqlalchemy import func
+from sqlalchemy import func, case
 
 
 router = APIRouter(prefix="/post")
 
-@router.get("/" , response_model=List[Post])
+@router.get("/", response_model=List[Post])
 def get_all(
-    db : Session = Depends(get_db),
-    limit : int = 3 , 
-    page : int = 1,
-    search : Optional[str] = ""):
+    db: Session = Depends(get_db),
+    limit: int = 3,
+    page: int = 1,
+    search: Optional[str] = ""
+):
     # cursor.execute('Select * from "Posts"')
     # posts = cursor.fetchall()
     # print(posts)
 
-    count = db.query(func.count(post_model.Post.id)).filter(post_model.Post.title.contains(search)).scalar()
+    # count = db.query(func.count(post_model.Post.id)).filter(post_model.Post.title.contains(search)).scalar()
+
+    # ------------------------------------------------------
+    
+    # Subquery for vote aggregation
+    vote_subq = (
+        db.query(
+            Vote.post_id.label("post_id"),
+            func.sum(case((Vote.vote == 1, 1), else_=0)).label("upVote"),
+            func.sum(case((Vote.vote == -1, 1), else_=0)).label("downVote"),
+        )
+        .group_by(Vote.post_id)
+        .subquery()
+    )
+
+    # main query
+    query = (
+        db.query(
+            post_model.Post,
+            func.coalesce(vote_subq.c.upVote, 0).label("upVote"),
+            func.coalesce(vote_subq.c.downVote, 0).label("downVote"),
+        )
+        .outerjoin(vote_subq, post_model.Post.id == vote_subq.c.post_id)
+        .filter(post_model.Post.title.contains(search))
+    )
+
+    #paginate count
+    count = (
+        db.query(func.count(post_model.Post.id))
+        .filter(post_model.Post.title.contains(search))
+        .scalar()
+    )
 
     if count == 0:
         return []
-    
+
     pages = math.ceil(count / limit)
-    offset = (page -1)*limit
+    offset = (page - 1) * limit
 
     if page > pages:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Page not exists"
         )
-    
-    posts = db.query(post_model.Post).filter(post_model.Post.title.contains(search)).limit(limit).offset(offset)
+
+    #fetch data
+    results = query.limit(limit).offset(offset).all()
+
+    #shape response
+    posts = []
+    for post, upVote, downVote in results:
+        post.upVote = upVote
+        post.downVote = downVote
+        posts.append(post)
+
     return posts
 
-from sqlalchemy import func
-import math
+
 
 @router.get("/myPost", response_model=List[PostBase])
 def get_all_post_of_user(
