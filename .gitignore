@@ -54,5 +54,5 @@ coverage.xml
 # uv.lock
 
 #alembic
-alembic/
-alembic.ini
+# alembic/
+# alembic.ini
