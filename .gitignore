@@ -27,6 +27,7 @@ env/
 *.isolate
 *.dvc/
 .stack-work/
+.env
 
 # Editors
 .idea/  # For PyCharm/IntelliJ
