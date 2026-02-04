@@ -49,7 +49,7 @@ def vote_to_post(
     db.commit()
     return {"status": "success"}
 
-router = APIRouter(prefix="/vote", tags=["Votes"])
+router = APIRouter(prefix="/vote")
 
 @router.post("/upvote/{post_id}")
 def upvote_post(
